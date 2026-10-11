@@ -3,6 +3,55 @@
   var settings = MSTextileSettings.load();
   var state = document.getElementById("saveState");
   var preview = document.querySelector(".preview iframe");
+  var passwordKey = "mstextile-admin-password-v1";
+  var sessionKey = "mstextile-admin-session-v1";
+  var authGate = document.getElementById("authGate");
+  var adminApp = document.getElementById("adminApp");
+  var authForm = document.getElementById("authForm");
+  var authError = document.getElementById("authError");
+  var confirmPasswordWrap = document.getElementById("confirmPasswordWrap");
+  var setupMode = !localStorage.getItem(passwordKey);
+  function updateAuthView() {
+    setupMode = !localStorage.getItem(passwordKey);
+    document.getElementById("authTitle").textContent = setupMode ? "Create admin password" : "Admin sign in";
+    document.getElementById("authDescription").textContent = setupMode ? "Choose a password to protect this admin panel on this device." : "Enter your admin password to manage the storefront.";
+    document.getElementById("authSubmit").textContent = setupMode ? "Set password" : "Sign in";
+    document.getElementById("adminPassword").autocomplete = setupMode ? "new-password" : "current-password";
+    confirmPasswordWrap.hidden = !setupMode;
+    document.getElementById("confirmPassword").required = setupMode;
+  }
+  function encodeBytes(bytes) { return btoa(String.fromCharCode.apply(null, new Uint8Array(bytes))); }
+  function derivePassword(password, salt, iterations) {
+    if (!window.crypto || !crypto.subtle || !window.TextEncoder) return Promise.reject(new Error("Password protection needs a modern browser. Open this folder in VS Code and use Live Server."));
+    return crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]).then(function (key) {
+      return crypto.subtle.deriveBits({ name: "PBKDF2", salt: salt, iterations: iterations, hash: "SHA-256" }, key, 256);
+    }).then(encodeBytes);
+  }
+  function savePasswordHash(password) {
+    var salt = crypto.getRandomValues(new Uint8Array(16)), iterations = 120000;
+    return derivePassword(password, salt, iterations).then(function (hash) { localStorage.setItem(passwordKey, JSON.stringify({ salt: encodeBytes(salt), hash: hash, iterations: iterations })); });
+  }
+  function unlockAdmin() { sessionStorage.setItem(sessionKey, "unlocked"); authGate.hidden = true; adminApp.hidden = false; }
+  updateAuthView();
+  if (sessionStorage.getItem(sessionKey) === "unlocked") { authGate.hidden = true; adminApp.hidden = false; } else { authGate.hidden = false; adminApp.hidden = true; }
+  authForm.addEventListener("submit", function (event) {
+    event.preventDefault(); authError.textContent = "";
+    var password = document.getElementById("adminPassword").value;
+    if (setupMode) {
+      if (password.length < 8) { authError.textContent = "Use at least 8 characters for your password."; return; }
+      if (password !== document.getElementById("confirmPassword").value) { authError.textContent = "The passwords do not match."; return; }
+      savePasswordHash(password).then(function () { unlockAdmin(); }).catch(function (error) { authError.textContent = error.message; });
+      return;
+    }
+    var saved;
+    try { saved = JSON.parse(localStorage.getItem(passwordKey)); } catch (error) { saved = null; }
+    if (!saved || !saved.salt || !saved.hash) { localStorage.removeItem(passwordKey); updateAuthView(); authError.textContent = "Password settings were invalid. Create a new password."; return; }
+    derivePassword(password, Uint8Array.from(atob(saved.salt), function (character) { return character.charCodeAt(0); }), saved.iterations).then(function (hash) {
+      if (hash !== saved.hash) { authError.textContent = "That password is not correct."; return; }
+      unlockAdmin();
+    }).catch(function (error) { authError.textContent = error.message; });
+  });
+  document.getElementById("logoutButton").addEventListener("click", function () { sessionStorage.removeItem(sessionKey); adminApp.hidden = true; authGate.hidden = false; authForm.reset(); authError.textContent = ""; updateAuthView(); document.getElementById("adminPassword").focus(); });
   function field(label, path, value, type, wide) {
     type = type || "text"; var id = "f-" + path.replace(/[^a-z0-9]/gi, "-");
     var control;
