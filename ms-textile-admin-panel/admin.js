@@ -4,7 +4,6 @@
   var state = document.getElementById("saveState");
   var preview = document.querySelector(".preview iframe");
   var passwordKey = "mstextile-admin-password-v1";
-  var sessionKey = "mstextile-admin-session-v1";
   var authGate = document.getElementById("authGate");
   var adminApp = document.getElementById("adminApp");
   var authForm = document.getElementById("authForm");
@@ -31,9 +30,10 @@
     var salt = crypto.getRandomValues(new Uint8Array(16)), iterations = 120000;
     return derivePassword(password, salt, iterations).then(function (hash) { localStorage.setItem(passwordKey, JSON.stringify({ salt: encodeBytes(salt), hash: hash, iterations: iterations })); });
   }
-  function unlockAdmin() { sessionStorage.setItem(sessionKey, "unlocked"); authGate.hidden = true; adminApp.hidden = false; }
+  function unlockAdmin() { authGate.hidden = true; adminApp.hidden = false; }
   updateAuthView();
-  if (sessionStorage.getItem(sessionKey) === "unlocked") { authGate.hidden = true; adminApp.hidden = false; } else { authGate.hidden = false; adminApp.hidden = true; }
+  authGate.hidden = false;
+  adminApp.hidden = true;
   authForm.addEventListener("submit", function (event) {
     event.preventDefault(); authError.textContent = "";
     var password = document.getElementById("adminPassword").value;
@@ -51,7 +51,7 @@
       unlockAdmin();
     }).catch(function (error) { authError.textContent = error.message; });
   });
-  document.getElementById("logoutButton").addEventListener("click", function () { sessionStorage.removeItem(sessionKey); adminApp.hidden = true; authGate.hidden = false; authForm.reset(); authError.textContent = ""; updateAuthView(); document.getElementById("adminPassword").focus(); });
+  document.getElementById("logoutButton").addEventListener("click", function () { adminApp.hidden = true; authGate.hidden = false; authForm.reset(); authError.textContent = ""; updateAuthView(); document.getElementById("adminPassword").focus(); });
   function field(label, path, value, type, wide) {
     type = type || "text"; var id = "f-" + path.replace(/[^a-z0-9]/gi, "-");
     var control;
