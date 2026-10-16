@@ -1,3 +1,13 @@
-admin.css
+# Admin panel source files (kept in the download package)
 admin.html
+admin.css
 admin.js
+
+# Local secrets and generated files
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+.DS_Store
+Thumbs.db
