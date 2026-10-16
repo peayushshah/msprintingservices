@@ -1,13 +1,18 @@
-# Admin panel source files (kept in the download package)
-admin.html
-admin.css
-admin.js
+# Private admin interface and content
+/private-admin/
+/.local-data/
+/admin.html
+/admin.css
+/admin.js
 
-# Local secrets and generated files
-.env
-.env.*
-!.env.example
-node_modules/
-dist/
+# Environment secrets
+/.env
+/.env.*
+!/.env.example
+
+# Build and local operating system files
+/node_modules/
+/dist/
 .DS_Store
 Thumbs.db
+*.zip

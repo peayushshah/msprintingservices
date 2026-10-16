@@ -1,6 +1,5 @@
 (function () {
   "use strict";
-  var key = "mstextile-site-settings-v1";
   var defaults = {
     brand: "MS TEXTILE",
     announcement: "Retail & custom apparel orders • Talk to us directly on WhatsApp",
@@ -65,11 +64,10 @@
   };
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
   function load() {
-    try {
-      var stored = JSON.parse(localStorage.getItem(key));
-      if (stored && typeof stored === "object") return Object.assign(clone(defaults), stored);
-    } catch (error) { /* Ignore invalid browser storage and use defaults. */ }
-    return clone(defaults);
+    return fetch("/api/site-settings", { cache: "no-store" }).then(function (response) {
+      if (!response.ok) throw new Error("Site settings are unavailable.");
+      return response.json();
+    }).catch(function () { return clone(defaults); });
   }
-  window.MSTextileSettings = { key: key, defaults: defaults, load: load, save: function (settings) { localStorage.setItem(key, JSON.stringify(settings)); } };
+  window.MSTextileSettings = { defaults: defaults, load: load };
 }());

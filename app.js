@@ -1,6 +1,6 @@
 (function () {
   "use strict";
-  var settings = window.MSTextileSettings.load();
+  window.MSTextileSettings.load().then(function (settings) {
   var products = settings.products;
   var cart = {};
   var productGrid = document.getElementById("productGrid");
@@ -93,4 +93,8 @@
   mobileNav.querySelectorAll("a").forEach(function (link) { link.addEventListener("click", closeMenu); });
   document.addEventListener("keydown", function (event) { if (event.key === "Escape") { closeCart(); closeMenu(); } });
   document.getElementById("year").textContent = new Date().getFullYear(); renderProducts("all"); renderCart();
+  }).catch(function () {
+    var grid = document.getElementById("productGrid");
+    if (grid) grid.innerHTML = "<p>Our collection is temporarily unavailable. Please try again shortly.</p>";
+  });
 }());

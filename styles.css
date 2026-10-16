@@ -337,8 +337,6 @@
     .footer-brand .brand { margin-bottom: 15px; color: #fff; }
     .footer-brand .brand-mark { color: var(--deep-green); background: #dfaa7d; }
     .footer-brand p { max-width: 300px; margin: 0; color: #a9bdb3; font-size: .79rem; line-height: 1.7; }
-    .admin-entry { display: inline-block; margin-top: 12px; color: #a9bdb3; font-size: .72rem; text-decoration: none; }
-    .admin-entry:hover { color: #fff; text-decoration: underline; }
     .footer-group h3 { margin: 4px 0 15px; color: #fff; font-size: .71rem; letter-spacing: .11em; text-transform: uppercase; }
     .footer-group a { display: block; width: fit-content; margin: 0 0 9px; color: #b9c9c0; font-size: .8rem; text-decoration: none; }
     .footer-group a:hover { color: #dfaa7d; }
